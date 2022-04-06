@@ -1,0 +1,64 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "simplepipes:block/cobblestone_pipe_core"
+      }
+    },
+    {
+      "when": {
+        "down": "true"
+      },
+      "apply": {
+        "model": "simplepipes:block/cobblestone_pipe_side"
+      }
+    },
+    {
+      "when": {
+        "up": "true"
+      },
+      "apply": {
+        "model": "simplepipes:block/cobblestone_pipe_side",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "model": "simplepipes:block/cobblestone_pipe_side",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "model": "simplepipes:block/cobblestone_pipe_side",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "model": "simplepipes:block/cobblestone_pipe_side",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "model": "simplepipes:block/cobblestone_pipe_side",
+        "x": 90,
+        "y": 90
+      }
+    }
+  ]
+}

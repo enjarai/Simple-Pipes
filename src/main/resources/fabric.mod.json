@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "simplepipes",
+  "version": "${version}",
+
+  "name": "Simple Pipes",
+  "description": "",
+  "authors": [
+    "enjarai"
+  ],
+  "contact": {
+    "homepage": "",
+    "sources": ""
+  },
+
+  "license": "",
+  "icon": "assets/simplepipes/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "nl.enjarai.simplepipes.SimplePipes"
+    ],
+    "client": [
+      "nl.enjarai.simplepipes.SimplePipesClient"
+    ]
+  },
+  "mixins": [
+    "simplepipes.mixins.json"
+  ],
+
+  "depends": {
+    "fabric": "*",
+    "minecraft": "1.18.x",
+    "java": ">=17"
+  }
+}
