@@ -1,4 +1,7 @@
 {
+  "textures": {
+    "particle": "#pipe"
+  },
   "elements": [
     {
       "from": [ 4, 4, 4 ],

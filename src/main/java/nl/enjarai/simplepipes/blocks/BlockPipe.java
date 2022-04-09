@@ -3,6 +3,8 @@ package nl.enjarai.simplepipes.blocks;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
@@ -12,6 +14,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
@@ -59,14 +62,29 @@ public abstract class BlockPipe extends BlockWithEntity implements Waterloggable
         builder.add(WATERLOGGED);
     }
 
+    @Nullable
+    @Override
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        return getDefaultState()
+                .with(NORTH, false)
+                .with(EAST, false)
+                .with(SOUTH, false)
+                .with(WEST, false)
+                .with(UP, false)
+                .with(DOWN, false);
+    }
+
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        if (context instanceof EntityShapeContext entityContext) {
-            entityContext.getEntity(); // TODO
+        var shape = CORE_SHAPE;
 
-            return CORE_SHAPE;
+        for (Direction direction : Direction.values()) {
+            if (isConnected(state, direction)) {
+                shape = VoxelShapes.union(shape, SHAPES[direction.ordinal()]);
+            }
         }
-        return CORE_SHAPE;
+
+        return shape;
     }
 
     private boolean isConnected(BlockState state, Direction direction) {

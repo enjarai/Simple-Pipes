@@ -1,0 +1,6 @@
+{
+  "parent": "simplepipes:block/template_pipe_inventory",
+  "textures": {
+    "pipe": "simplepipes:block/cobblestone_pipe"
+  }
+}
