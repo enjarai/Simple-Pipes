@@ -10,6 +10,7 @@ import nl.enjarai.simplepipes.blocks.SimplePipesBlocks;
 
 public class SimplePipesItems {
     public static final Item COBBLESTONE_PIPE = registerBlockItem(SimplePipesBlocks.COBBLESTONE_PIPE_BLOCK);
+    public static final Item OMNIHOPPER = registerBlockItem(SimplePipesBlocks.OMNIHOPPER_BLOCK);
 
     public static void register() {}
 
