@@ -82,9 +82,9 @@ public class OmniHopperBlock extends BlockWithEntity {
                 var pY = pointyDirection.getOffsetY() * 0.375;
                 var pZ = pointyDirection.getOffsetZ() * 0.375;
                 if (!pointyDirection.getAxis().equals(suckyDirection.getAxis())) {
-                    pX += suckyDirection.getOffsetX() * (pointyDirection.getAxis() == Direction.Axis.X ? -0.125 : 0);
-                    pY += suckyDirection.getOffsetY() * (pointyDirection.getAxis() == Direction.Axis.Y ? -0.125 : 0);
-                    pZ += suckyDirection.getOffsetZ() * (pointyDirection.getAxis() == Direction.Axis.Z ? -0.125 : 0);
+                    pX += suckyDirection.getOffsetX() * -0.125;
+                    pY += suckyDirection.getOffsetY() * -0.125;
+                    pZ += suckyDirection.getOffsetZ() * -0.125;
                 }
                 var pointyShape = POINTY_SHAPE.offset(pX, pY, pZ);
 
@@ -204,8 +204,8 @@ public class OmniHopperBlock extends BlockWithEntity {
 
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof HopperBlockEntity) {
-            HopperBlockEntity.onEntityCollided(world, pos, state, entity, (HopperBlockEntity) blockEntity);
+        if (blockEntity instanceof OmniHopperBlockEntity hopperBlockEntity) {
+            OmniHopperBlockEntity.onEntityCollided(world, pos, state, entity, hopperBlockEntity);
         }
     }
 

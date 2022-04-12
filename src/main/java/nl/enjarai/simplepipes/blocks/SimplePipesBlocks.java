@@ -8,6 +8,7 @@ import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import nl.enjarai.simplepipes.SimplePipes;
 
@@ -20,7 +21,8 @@ public class SimplePipesBlocks {
 
     public static void register() {
         registerBlock("cobblestone_pipe", COBBLESTONE_PIPE_BLOCK);
-        registerBlock("omnihopper", OMNIHOPPER_BLOCK);
+        // registerBlock("omnihopper", OMNIHOPPER_BLOCK);
+        Registry.register(Registry.BLOCK, new Identifier("omnihopper", "omnihopper"), OMNIHOPPER_BLOCK);
 
         registerBlockEntity("cobblestone_pipe", COBBLESTONE_PIPE_BLOCK_ENTITY);
     }
