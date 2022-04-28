@@ -23,9 +23,6 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class OmniHopperBlock extends BlockWithEntity {
     public static final EnumProperty<Direction> POINTY_BIT;
     public static final EnumProperty<Direction> SUCKY_BIT;
@@ -34,8 +31,7 @@ public class OmniHopperBlock extends BlockWithEntity {
     private static final VoxelShape POINTY_SHAPE;
     private static final VoxelShape[][] SHAPES;
     private static final VoxelShape[][] SHAPES_RAYCAST;
-    public static final VoxelShape[] INSIDE_SUCKY_AREA;
-    public static final VoxelShape[] INFRONT_SUCKY_AREA;
+    public static final VoxelShape[] SUCKY_AREA;
 
     static {
         POINTY_BIT = DirectionProperty.of("pointy_bit", Direction.values());
@@ -52,7 +48,7 @@ public class OmniHopperBlock extends BlockWithEntity {
                 Block.createCuboidShape(0, 0, 0, 6, 16, 16),
                 Block.createCuboidShape(10, 0, 0, 16, 16, 16),
         };
-        var indentShapes = new VoxelShape[]{
+        var insideShapes = new VoxelShape[]{
                 Block.createCuboidShape(2, 0, 2, 14, 5, 14),
                 Block.createCuboidShape(2, 11, 2, 14, 16, 14),
 
@@ -68,13 +64,20 @@ public class OmniHopperBlock extends BlockWithEntity {
 
         SHAPES = new VoxelShape[6][6];
         SHAPES_RAYCAST = new VoxelShape[6][6];
-        INSIDE_SUCKY_AREA = indentShapes;
-        INFRONT_SUCKY_AREA = new VoxelShape[6]; // TODO
-        for (var suckyDirection : Direction.values()) {
 
-            var mainShapeRaycast = VoxelShapes.union(defaultShapes[suckyDirection.ordinal()], MIDDLE_SHAPE);
+        SUCKY_AREA = new VoxelShape[6];
+        for (var suckyDirection : Direction.values()) {
+            var suckyI = suckyDirection.ordinal();
+
+            var infrontSuckyArea =
+                    Block.createCuboidShape(0, 0, 0, 16, 16, 16)
+                            .offset(suckyDirection.getOffsetX(), suckyDirection.getOffsetY(), suckyDirection.getOffsetZ());
+
+            SUCKY_AREA[suckyI] = VoxelShapes.union(insideShapes[suckyI], infrontSuckyArea);
+
+            var mainShapeRaycast = VoxelShapes.union(defaultShapes[suckyI], MIDDLE_SHAPE);
             var mainShape = VoxelShapes.combineAndSimplify(
-                    mainShapeRaycast, indentShapes[suckyDirection.ordinal()], BooleanBiFunction.ONLY_FIRST);
+                    mainShapeRaycast, insideShapes[suckyI], BooleanBiFunction.ONLY_FIRST);
 
             for (var pointyDirection : Direction.values()) {
 
@@ -88,8 +91,8 @@ public class OmniHopperBlock extends BlockWithEntity {
                 }
                 var pointyShape = POINTY_SHAPE.offset(pX, pY, pZ);
 
-                SHAPES[pointyDirection.ordinal()][suckyDirection.ordinal()] = VoxelShapes.union(mainShape, pointyShape);
-                SHAPES_RAYCAST[pointyDirection.ordinal()][suckyDirection.ordinal()] = VoxelShapes.union(mainShapeRaycast, pointyShape);
+                SHAPES[pointyDirection.ordinal()][suckyI] = VoxelShapes.union(mainShape, pointyShape);
+                SHAPES_RAYCAST[pointyDirection.ordinal()][suckyI] = VoxelShapes.union(mainShapeRaycast, pointyShape);
             }
         }
     }
@@ -115,19 +118,19 @@ public class OmniHopperBlock extends BlockWithEntity {
     }
 
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new HopperBlockEntity(pos, state);
+        return new OmniHopperBlockEntity(pos, state);
     }
 
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return world.isClient ? null : checkType(type, BlockEntityType.HOPPER, HopperBlockEntity::serverTick);
+        return world.isClient ? null : checkType(type, SimplePipesBlocks.OMNIHOPPER_BLOCK_ENTITY, OmniHopperBlockEntity::serverTick);
     }
 
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
         if (itemStack.hasCustomName()) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof HopperBlockEntity) {
-                ((HopperBlockEntity)blockEntity).setCustomName(itemStack.getName());
+            if (blockEntity instanceof OmniHopperBlockEntity hopperBlockEntity) {
+                hopperBlockEntity.setCustomName(itemStack.getName());
             }
         }
 
@@ -144,8 +147,8 @@ public class OmniHopperBlock extends BlockWithEntity {
             return ActionResult.SUCCESS;
         } else {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof HopperBlockEntity) {
-                player.openHandledScreen((HopperBlockEntity)blockEntity);
+            if (blockEntity instanceof OmniHopperBlockEntity hopperBlockEntity) {
+                player.openHandledScreen(hopperBlockEntity);
                 player.incrementStat(Stats.INSPECT_HOPPER);
             }
 
@@ -200,13 +203,6 @@ public class OmniHopperBlock extends BlockWithEntity {
 
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(POINTY_BIT).add(SUCKY_BIT).add(ENABLED);
-    }
-
-    public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof OmniHopperBlockEntity hopperBlockEntity) {
-            OmniHopperBlockEntity.onEntityCollided(world, pos, state, entity, hopperBlockEntity);
-        }
     }
 
     public boolean canPathfindThrough(BlockState state, BlockView world, BlockPos pos, NavigationType type) {

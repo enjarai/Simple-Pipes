@@ -18,6 +18,8 @@ public class SimplePipesBlocks {
 
     public static final BlockEntityType<BlockEntityPipeCobblestone> COBBLESTONE_PIPE_BLOCK_ENTITY =
             FabricBlockEntityTypeBuilder.create(BlockEntityPipeCobblestone::new, COBBLESTONE_PIPE_BLOCK).build(null);
+    public static final BlockEntityType<OmniHopperBlockEntity> OMNIHOPPER_BLOCK_ENTITY =
+            FabricBlockEntityTypeBuilder.create(OmniHopperBlockEntity::new, OMNIHOPPER_BLOCK).build(null);
 
     public static void register() {
         registerBlock("cobblestone_pipe", COBBLESTONE_PIPE_BLOCK);
@@ -25,6 +27,7 @@ public class SimplePipesBlocks {
         Registry.register(Registry.BLOCK, new Identifier("omnihopper", "omnihopper"), OMNIHOPPER_BLOCK);
 
         registerBlockEntity("cobblestone_pipe", COBBLESTONE_PIPE_BLOCK_ENTITY);
+        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier("omnihopper", "omnihopper"), OMNIHOPPER_BLOCK_ENTITY);
     }
 
     private static void registerBlock(String path, Block block) {

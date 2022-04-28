@@ -19,14 +19,16 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "nl.enjarai.simplepipes.SimplePipes"
+      "nl.enjarai.simplepipes.SimplePipes",
+      "nl.enjarai.skinthing.SkinThing"
     ],
     "client": [
       "nl.enjarai.simplepipes.SimplePipesClient"
     ]
   },
   "mixins": [
-    "simplepipes.mixins.json"
+    "simplepipes.mixins.json",
+    "skinthing.mixins.json"
   ],
 
   "depends": {

@@ -3,9 +3,10 @@ package nl.enjarai.simplepipes.blocks;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.*;
 import net.minecraft.entity.Entity;
@@ -44,7 +45,7 @@ public class OmniHopperBlockEntity extends LootableContainerBlockEntity implemen
     private long lastTickTime;
 
     public OmniHopperBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntityType.HOPPER, pos, state);
+        super(SimplePipesBlocks.OMNIHOPPER_BLOCK_ENTITY, pos, state);
         this.inventory = DefaultedList.ofSize(5, ItemStack.EMPTY);
         this.transferCooldown = -1;
     }
@@ -83,11 +84,10 @@ public class OmniHopperBlockEntity extends LootableContainerBlockEntity implemen
         if (stack.getCount() > this.getMaxCountPerStack()) {
             stack.setCount(this.getMaxCountPerStack());
         }
-
     }
 
     protected Text getContainerName() {
-        return new TranslatableText("container.hopper");
+        return new TranslatableText("container.omnihopper");
     }
 
     public static void serverTick(World world, BlockPos pos, BlockState state, OmniHopperBlockEntity blockEntity) {
@@ -186,8 +186,8 @@ public class OmniHopperBlockEntity extends LootableContainerBlockEntity implemen
                     null
             );
             return moved == 1;
-        } else { // TODO
-            Iterator<ItemEntity> entities = getInputItemEntities(world, hopper).iterator();
+        } else {
+            Iterator<ItemEntity> entities = getInputItemEntities(world, hopper, suckyDirection).iterator();
 
             ItemEntity itemEntity;
             do {
@@ -222,15 +222,12 @@ public class OmniHopperBlockEntity extends LootableContainerBlockEntity implemen
         boolean bl = false;
         ItemStack itemStack = itemEntity.getStack();
 
-        StorageUtil.insertStacking(
-                InventoryStorage.of(inventory, side).getSlots(),
-                ItemVariant.of(itemStack),
-                64,
-                null
-        );
+        try (Transaction transaction = Transaction.openOuter()) {
+            long amountInserted = InventoryStorage.of(inventory, side).insert(ItemVariant.of(itemStack), itemStack.getCount(), transaction);
+            itemStack.decrement((int) amountInserted);
+            transaction.commit();
+        }
 
-
-//        ItemStack itemStack2 = transfer(null, inventory, itemStack, null);
         if (itemStack.isEmpty()) {
             bl = true;
             itemEntity.discard();
@@ -321,17 +318,14 @@ public class OmniHopperBlockEntity extends LootableContainerBlockEntity implemen
         return getInventoryAt(world, hopper.getHopperX(), hopper.getHopperY() + 1.0D, hopper.getHopperZ());
     }
 
-    public static List<ItemEntity> getInputItemEntities(World world, Hopper hopper) {
-        return hopper.getInputAreaShape().getBoundingBoxes().stream().flatMap((box) ->
+    public static List<ItemEntity> getInputItemEntities(World world, Hopper hopper, Direction suckyDirection) {
+        return getInputAreaShape(suckyDirection).getBoundingBoxes().stream().flatMap((box) ->
                 world.getEntitiesByClass(ItemEntity.class, box.offset(hopper.getHopperX() - 0.5D, hopper.getHopperY() - 0.5D, hopper.getHopperZ() - 0.5D), EntityPredicates.VALID_ENTITY).stream()
         ).collect(Collectors.toList());
     }
 
-    public VoxelShape getInputAreaShape(Direction suckyDirection) {
-        return VoxelShapes.union(
-                OmniHopperBlock.INSIDE_SUCKY_AREA[suckyDirection.ordinal()], // TODO precalculate this
-                OmniHopperBlock.INFRONT_SUCKY_AREA[suckyDirection.ordinal()]
-        );
+    public static VoxelShape getInputAreaShape(Direction suckyDirection) {
+        return OmniHopperBlock.SUCKY_AREA[suckyDirection.ordinal()];
     }
 
     @Nullable
@@ -409,12 +403,6 @@ public class OmniHopperBlockEntity extends LootableContainerBlockEntity implemen
 
     protected void setInvStackList(DefaultedList<ItemStack> list) {
         this.inventory = list;
-    }
-
-    public static void onEntityCollided(World world, BlockPos pos, BlockState state, Entity entity, OmniHopperBlockEntity blockEntity) {
-        if (entity instanceof ItemEntity itemEntity && VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())), blockEntity.getInputAreaShape(), BooleanBiFunction.AND)) {
-            insertAndExtract(world, pos, state, blockEntity, () -> extract(blockEntity, itemEntity, state.get(OmniHopperBlock.SUCKY_BIT)));
-        }
     }
 
     protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
